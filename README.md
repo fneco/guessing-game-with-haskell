@@ -57,6 +57,8 @@ dependencies:
 
 `stack new` は「someFunc」プログラムを生成してくれます。 **src/Lib.hs** ファイルをチェックしてみましょう。
 
+<!-- TODO: src/Main.hs の説明の追加 -->
+
 ファイル名： src/Lib.hs
 
 ```hs
@@ -103,7 +105,7 @@ someFunc
 >
 > この章では「実装」→「テスト」のごく短いサイクルを繰り返すことで、プログラムに少しずつ機能を追加していきます。
 
-**src/Lib.hs** ファイルを開き直しましょう。
+**src/Main.hs** ファイルを開きましょう。
 このファイルにすべてのコードを書いていきます。
 
 ## 予想を処理する
@@ -115,8 +117,8 @@ someFunc
 <span class="filename">ファイル名：src/Lib.hs</span>
 
 ```hs
-someFunc :: IO ()
-someFunc = do
+main :: IO ()
+main = do
   putStrLn "Guess the number!"
 
   putStrLn "Please input your guess."
@@ -125,546 +127,105 @@ someFunc = do
 
   putStrLn ("You guessed: " ++ guess)
 ```
+
+<!-- TODO: getLine は失敗する可能性があるのか？失敗する可能性を考慮したプログラムにするには？ -->
 
 <span class="caption">リスト 2-1：ユーザに予想を入力してもらい、それを出力するコード</span>
 
 このコードには多くの情報が詰め込まれています。
 行ごとに見ていきましょう。
-ユーザ入力を受け付け、結果を出力するためには`io`（入出力）ライブラリをスコープに入れる必要があります。
-`io`ライブラリは、`std`と呼ばれる標準ライブラリに含まれています。
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:io}}
-```
-
-<!--
-By default, Rust has a few items defined in the standard library that it brings
-into the scope of every program. This set is called the *prelude*, and you can
-see everything in it [in the standard library documentation][prelude].
--->
-
-Rust はデフォルトで、標準ライブラリで定義されているアイテムの中のいくつかを、すべてのプログラムのスコープに取り込みます。
-このセットは*prelude*（プレリュード）と呼ばれ、[標準ライブラリのドキュメント][prelude]でその中のすべてを見ることができます。
-
-<!--
-If a type you want to use isn’t in the prelude, you have to bring that type
-into scope explicitly with a `use` statement. Using the `std::io` library
-provides you with a number of useful features, including the ability to accept
-user input.
--->
-
-使いたい型が prelude にない場合は、その型を`use`文で明示的にスコープに入れる必要があります。
-`std::io`ライブラリを`use`すると、ユーザ入力を受け付ける機能など（入出力に関する）多くの便利な機能が利用できるようになります。
-
-[prelude]: https://doc.rust-lang.org/std/prelude/index.html
-
-<!--
-As you saw in Chapter 1, the `main` function is the entry point into the
-program:
--->
-
-第 1 章で見た通り、`main`関数がプログラムへのエントリーポイント（訳注：スタート地点）になります。
+`main`関数がプログラムへのエントリーポイント（訳注：スタート地点）になります。
+`::` は型の宣言時に利用し、 左側に変数（関数）名、右側に型を記載します。
 
 ```hs
-someFunc :: IO ()
-someFunc = do
+main :: IO ()
+```
+
+ここでは、`main` が `IO ()` 型であることを示しています。
+`IO` は「何らかの型を引数にとる箱」のようなものです。 Haskell には様々な"箱"があり、それぞれの"箱"はそれぞれの機能・意味を持っています。`IO` はその箱の中身がユーザー入力の読み取りやファイルの読み取りの結果としての値であることを示します。
+Haskell の型には別の型を引数にとる型があり、`IO` は１つの型を引数に取ります。ここで`IO` が引数に取っているのは `()` です。`()` は空のタプルであり、他の言語における void のようなものです。
+
+`main` 変数に `=` で値を代入します。
+`do` は特殊なキーワードです。
+`do` ブロックの中で `return` された値が `main` に格納されます。
+Haskell では python と同様、ブロックを波括弧`{}`ではなく、インデントで表現します。
+なので、 `do` より下の行はインデントを１レベル上げる必要があります。
+
+```hs
+main = do
+```
+
+do 表記では、do ブロック内で `<-` という記号が利用できるようになります。
+`<-` を利用すると、"値の箱"（ここでは `IO`）から値を取り出すことができます。
+例えば、`IO String` という型の変数`getLine`から `String` の値を取り出すには、 `guess <- getLine` のように記述します。
+`<-` 記号により `IO` という"箱"から `String` を取り出して、 `guess` 変数に格納しています。
+
+```hs
   putStrLn "Guess the number!"
 
   putStrLn "Please input your guess."
-
-  guess <- getLine
-
-  putStrLn ("You guessed: " ++ guess)
 ```
-
-<!--
-The `fn` syntax declares a new function, the parentheses, `()`, indicate there
-are no parameters, and the curly bracket, `{`, starts the body of the function.
--->
-
-`fn`構文は関数を新しく宣言し、かっこの`()`は引数がないことを示し、波括弧の`{`は関数の本体を開始します。
-
-<!--
-As you also learned in Chapter 1, `println!` is a macro that prints a string to
-the screen:
--->
-
-また、第 1 章で学んだように、`println!`は画面に文字列を表示するマクロです.
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:print}}
-```
-
-<!--
-This code is printing a prompt stating what the game is and requesting input
-from the user.
--->
 
 このコードはゲームの内容などを示すプロンプトを表示し、ユーザに入力を求めています。
+`putStrLn`は組み込み関数であり、画面に文字列を表示します。
+組み込みの関数や型は標準モジュールに含まれており、自動的にインポートされます。
+標準モジュールは **Prelude**（プレリュード）と呼ばれ、 [Hackage](https://hackage.haskell.org/package/base-4.19.0.0/docs/Prelude.html) でその中のすべてを見ることができます。
 
-<!--
-### Storing Values with Variables
--->
-
-### 値を変数に保持する
-
-<!--
-Next, we’ll create a *variable* to store the user input, like this:
--->
-
-次に、ユーザの入力を格納するための*変数*を作りましょう。
-こんな感じです。
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:string}}
-```
-
-<!--
-Now the program is getting interesting! There’s a lot going on in this little
-line. We use the `let` statement to create the variable. Here’s another example:
--->
-
-プログラムが少し興味深いものになってきました。
-この小さな行の中でいろいろなことが起きています。
-`let`文を使って変数を作っています。
-別の例も見てみましょう。
-
-```rust,ignore
-let apples = 5;
-```
-
-<!--
-This line creates a new variable named `apples` and binds it to the value 5. In
-Rust, variables are immutable by default. We’ll be discussing this concept in
-detail in the [“Variables and Mutability”][variables-and-mutability] section in Chapter 3. To make a variable mutable, we add `mut` before the
-variable name:
--->
-
-この行では`apples`という名前の新しい変数を作成し`5`という値に束縛しています。
-Rust では変数はデフォルトで不変（immutable）になります。
-この概念については第 3 章の[「変数と可変性」][variables-and-mutability]の節で詳しく説明します。
-変数を可変（mutable）にするには、変数名の前に`mut`をつけます。
-
-```rust,ignore
-let apples = 5; // immutable
-                // 不変
-let mut bananas = 5; // mutable
-                     // 可変
-```
-
-<!--
-> Note: The `//` syntax starts a comment that continues until the end of the
-> line. Rust ignores everything in comments. We’ll discuss comments in more
-> detail in [Chapter 3][comments].
--->
-
-> 注：`//`構文は行末まで続くコメントを開始し、Rust はコメント内のすべて無視します。
-> コメントについては[第 3 章][comments]で詳しく説明します。
-
-<!--
-Returning to the guessing game program, you now know that `let mut guess` will
-introduce a mutable variable named `guess`. The equal sign (`=`) tells Rust we
-want to bind something to the variable now. On the right of the equals sign is
-the value that `guess` is bound to, which is the result of calling
-`String::new`, a function that returns a new instance of a `String`.
-[`String`][string] is a string type provided by the standard
-library that is a growable, UTF-8 encoded bit of text.
--->
-
-数当てゲームのプログラムに戻りましょう。
-ここまでの話で`let mut guess`が`guess`という名前の可変変数を導入することがわかったと思います。
-等号記号（`=`）は Rust に、いまこの変数を何かに束縛したいことを伝えます。
-等号記号の右側には`guess`が束縛される値があります。
-これは`String::new`関数を呼び出すことで得られた値で、この関数は`String`型の新しいインスタンスを返します。
-[`String`][string]は標準ライブラリによって提供される文字列型で、サイズが拡張可能な、UTF-8 でエンコードされたテキスト片になります。
-
-[string]: https://doc.rust-lang.org/std/string/struct.String.html
-
-<!--
-The `::` syntax in the `::new` line indicates that `new` is an associated
-function of the `String` type. An *associated function* is a function that’s
-implemented on a type, in this case `String`. This `new` function creates a
-new, empty string. You’ll find a `new` function on many types, because it’s a
-common name for a function that makes a new value of some kind.
--->
-
-`::new`の行にある`::`構文は`new`が`String`型の関連関数であることを示しています。
-*関連関数*とは、ある型（ここでは`String`）に対して実装される関数のことです。
-この`new`関数は新しい空の文字列を作成します。
-`new`関数は多くの型に見られます。
-なぜなら、何らかの新しい値を作成する関数によくある名前だからです。
-
-<!--
-In full, the `let mut guess = String::new();` line has created a mutable
-variable that is currently bound to a new, empty instance of a `String`. Whew!
--->
-
-つまり`let mut guess = String::new();`という行は可変変数を作成し、その変数は現時点では新しい空の`String`のインスタンスに束縛されているわけです。
-ふう！
-
-<!--
-### Receiving User Input
--->
+使いたい関数・型が Prelude にない場合は、`import`文で明示的にスコープに入れる必要があります。
 
 ### ユーザの入力を受け取る
 
-<!--
-Recall that we included the input/output functionality from the standard
-library with `use std::io;` on the first line of the program. Now we’ll call
-the `stdin` function from the `io` module, which will allow us to handle user
-input:
--->
-
-プログラムの最初の行に`use std::io`と書いて、標準ライブラリの入出力機能を取り込んだことを思い出してください。
-ここで`io`モジュールの`stdin`関数を呼び出して、ユーザ入力を処理できるようにしましょう。
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:read}}
+```hs
+  guess <- getLine
 ```
 
-<!--
-If we hadn’t imported the `io` library with `use std::io` at the beginning of
-the program, we could still use the function by writing this function call as
-`std::io::stdin`. The `stdin` function returns an instance of
-[`std::io::Stdin`][iostdin], which is a type that represents a
-handle to the standard input for your terminal.
--->
+`getLine` は実行されると、ユーザから入力を待つ組み込み関数です。
+ユーザから文字列が入力されると、`IO String` 型を返します。
+先述の通り、`<-` 記号は do ブロック内でのみ利用でき、`IO` などの"箱"から値を取り出します。
+`<-` の右辺は"箱"が格納された変数（"箱"を返却する関数）であり、左辺は右辺の"箱"から取り出した値を格納する変数です。
+つまり`guess <- getLine`では、ユーザから入力を待ち、ユーザが文字列を入力したら、その値が`guess`に代入されるわけです。
 
-もし、プログラムの最初に`use std::io`と書いて`io`ライブラリをインポートしていなかったとしても、`std::io::stdin`のように呼び出せば、この関数を利用できます。
-`stdin`関数はターミナルの標準入力へのハンドルを表す型である[`std::io::Stdin`][iostdin]のインスタンスを返します。
+## ++演算で文字列を結合 する
 
-[iostdin]: https://doc.rust-lang.org/std/io/struct.Stdin.html
+ここまでのコードで説明するのは残り 1 行だけです。
 
-<!--
-Next, the line `.read_line(&mut guess)` calls the [`read_line`][read_line] method on the standard input handle to get input from the user.
-We’re also passing `&mut guess` as the argument to `read_line` to tell it what
-string to store the user input in. The full job of `read_line` is to take
-whatever the user types into standard input and append that into a string
-(without overwriting its contents), so we therefore pass that string as an
-argument. The string argument needs to be mutable so the method can change the
-string’s content.
--->
-
-次の`.read_line(&mut guess)`行は、標準入力ハンドルの[`read_line`][read_line]メソッドを呼び出し、ユーザからの入力を得ています。
-また、`read_line`の引数として`&mut guess`を渡し、ユーザ入力をどの文字列に格納するかを指示しています。
-`read_line`メソッドの仕事は、ユーザが標準入力に入力したものを文字列に（いまの内容を上書きせずに）追加することですので、文字列を引数として渡しているわけです。
-引数の文字列は、その内容をメソッドが変更できるように、可変である必要があります。
-
-[read_line]: https://doc.rust-lang.org/std/io/struct.Stdin.html#method.read_line
-
-<!--
-The `&` indicates that this argument is a *reference*, which gives you a way to
-let multiple parts of your code access one piece of data without needing to
-copy that data into memory multiple times. References are a complex feature,
-and one of Rust’s major advantages is how safe and easy it is to use
-references. You don’t need to know a lot of those details to finish this
-program. For now, all you need to know is that like variables, references are
-immutable by default. Hence, you need to write `&mut guess` rather than
-`&guess` to make it mutable. (Chapter 4 will explain references more
-thoroughly.)
--->
-
-この`&`は、この引数が*参照*であることを示し、これによりコードの複数の部分が同じデータにアクセスしても、そのデータを何度もメモリにコピーしなくて済みます。
-参照は複雑な機能（訳注：一部のプログラム言語では正しく使うのが難しい機能）ですが、Rust の大きな利点の一つは参照を安全かつ簡単に使用できることです。
-このプログラムを完成させるのに、そのような詳細を知る必要はないでしょう。
-とりあえず知っておいてほしいのは、変数のように参照もデフォルトで不変であることです。
-したがって、`&guess`ではなく`&mut guess`と書いて可変にする必要があります。
-（参照については第 4 章でより詳しく説明します）
-
-<!--
-### Handling Potential Failure with the `Result` Type
--->
-
-### `Result`型で失敗の可能性を扱う
-
-<!--
-We’re still working on this line of code. Although we’re now discussing a third
-line of text, it’s still part of a single logical line of code. The next part
-is this method:
--->
-
-まだ、このコードの行は終わってません。
-これから説明するのはテキスト上は 3 行目になりますが、まだ一つの論理的な行の一部分に過ぎません。
-次の部分はこのメソッドです。
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:expect}}
+```hs
+  putStrLn ("You guessed: " ++ guess)
 ```
-
-<!--
-We could have written this code as:
--->
-
-このコードは、こう書くこともできました。
-
-```rust,ignore
-io::stdin().read_line(&mut guess).expect("Failed to read line");
-```
-
-<!--
-However, one long line is difficult to read, so it’s best to divide it. It’s
-often wise to introduce a newline and other whitespace to help break up long
-lines when you call a method with the `.method_name()` syntax. Now let’s
-discuss what this line does.
--->
-
-しかし、長い行は読みづらいので分割したほうがよいでしょう。
-`.method_name()`構文でメソッドを呼び出すとき、長い行を改行と空白で分割するのが賢明なことがよくあります。
-それでは、この行（`expect()`メソッド）が何をするのか説明します。
-
-<!--
-As mentioned earlier, `read_line` puts whatever the user enters into the string
-we pass to it, but it also returns a value—in this case, an
-[`io::Result`][ioresult]. Rust has a number of types named
-`Result` in its standard library: a generic [`Result`][result]
-as well as specific versions for submodules, such as `io::Result`. The `Result`
-types are [*enumerations*][enums], often referred to as *enums*,
-which can have a fixed set of possibilities known as *variants*. Enums are
-often used with `match`, a conditional that makes it convenient to execute
-different code based on which variant an enum value is when the conditional is
-evaluated.
--->
-
-前述したように、`read_line`メソッドは渡された文字列にユーザが入力したものを入れます。
-しかし、同時に値（この場合は[`io::Result`][ioresult]）も返します。
-Rust の標準ライブラリには`Result`という名前の型がいくつかあります。
-汎用の[`Result`][result]と、`io::Result`といったサブモジュール用の特殊な型などです。
-これらの`Result`型は[_列挙型_][enums]になります。
-列挙型は*enum*とも呼ばれ、取りうる値として決まった数の*列挙子*（variant）を持ちます。
-列挙型はよく`match`と一緒に使われます。
-これは条件式の一種で、評価時に、列挙型の値がどの列挙子であるかに基づいて異なるコードを実行できるという便利なものです。
-
-[ioresult]: https://doc.rust-lang.org/std/io/type.Result.html
-[result]: https://doc.rust-lang.org/std/result/enum.Result.html
-
-<!--
-Chapter 6 will cover enums in more detail. The purpose of these `Result` types
-is to encode error-handling information.
--->
-
-enum については第 6 章で詳しく説明します。
-これらの`Result`型の目的は、エラー処理に関わる情報を符号化（エンコード）することです。
-
-[enums]: ch06-00-enums.html
-
-<!--
-`Result`’s variants are `Ok` and `Err`. The `Ok` variant indicates the operation
-was successful, and inside `Ok` is the successfully generated value. The `Err`
-variant means the operation failed, and `Err` contains information about how or
-why the operation failed.
--->
-
-`Result`の列挙子は`Ok`か`Err`です。
-`Ok`列挙子は処理が成功したことを示し、`Ok`の中には正常に生成された値が入っています。
-`Err`列挙子は処理が失敗したことを意味し、`Err`には処理が失敗した過程や理由についての情報が含まれています。
-
-<!--
-Values of the `Result` type, like values of any type, have methods defined on
-them. An instance of `io::Result` has an [`expect` method][expect] that you can call. If this instance of `io::Result` is an `Err` value,
-`expect` will cause the program to crash and display the message that you
-passed as an argument to `expect`. If the `read_line` method returns an `Err`,
-it would likely be the result of an error coming from the underlying operating
-system. If this instance of `io::Result` is an `Ok` value, `expect` will take
-the return value that `Ok` is holding and return just that value to you so you
-can use it. In this case, that value is the number of bytes in the user’s input.
--->
-
-`Result`型の値にも、他の型と同様にメソッドが定義されています。
-`io::Result`のインスタンスには[`expect`メソッド][expect]がありますので、これを呼び出せます。
-この`io::Result`インスタンスが`Err`の値の場合、`expect`メソッドはプログラムをクラッシュさせ、引数として渡されたメッセージを表示します。
-`read_line`メソッドが`Err`を返したら、それはおそらく基礎となるオペレーティング・システムに起因するものでしょう。
-もしこの`io::Result`オブジェクトが`Ok`値の場合、`expect`メソッドは`Ok`列挙子が保持する戻り値を取り出して、その値だけを返してくれます。
-こうして私たちはその値を使うことができるわけです。
-今回の場合、その値はユーザ入力のバイト数になります。
-
-[expect]: https://doc.rust-lang.org/std/result/enum.Result.html#method.expect
-
-<!--
-If you don’t call `expect`, the program will compile, but you’ll get a warning:
--->
-
-もし`expect`メソッドを呼び出さなかったら、コンパイルはできるものの警告が出るでしょう。
-
-```console
-{{#include ../listings/ch02-guessing-game-tutorial/no-listing-02-without-expect/output.txt}}
-```
-
-<!--
-Rust warns that you haven’t used the `Result` value returned from `read_line`,
-indicating that the program hasn’t handled a possible error.
--->
-
-Rust は私たちが`read_line`から返された`Result`値を使用していないことを警告し、これはプログラムがエラーの可能性に対処していないことを示します。
-
-<!--
-The right way to suppress the warning is to actually write error handling, but
-in our case we just want to crash this program when a problem occurs, so we can
-use `expect`. You’ll learn about recovering from errors in [Chapter
-9][recover].
--->
-
-警告を抑制する正しい方法は実際にエラー処理を書くことです。
-しかし、現時点では問題が起きたときにこのプログラムをクラッシュさせたいだけなので、`expect`が使えるわけです。
-エラーからの回復については第 9 章で学びます。
-
-<!--
-### Printing Values with `println!` Placeholders
--->
-
-### `println!`マクロのプレースホルダーで値を表示する
-
-<!--
-Aside from the closing curly bracket, there’s only one more line to discuss in
-the code so far:
--->
-
-閉じ波かっこを除けば、ここまでのコードで説明するのは残り 1 行だけです。
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch02-guessing-game-tutorial/listing-02-01/src/main.rs:print_guess}}
-```
-
-<!--
-This line prints the string that now contains the user’s input. The `{}` set of
-curly brackets is a placeholder: think of `{}` as little crab pincers that hold
-a value in place. You can print more than one value using curly brackets: the
-first set of curly brackets holds the first value listed after the format
-string, the second set holds the second value, and so on. Printing multiple
-values in one call to `println!` would look like this:
--->
 
 この行はユーザの入力を現在保持している文字列を表示します。
-一組の波括弧の`{}`はプレースホルダーです。
-`{}`は値を所定の場所に保持する小さなカニのはさみだと考えてください。
-波括弧をいくつか使えば複数の値を表示できます。
-最初の波括弧の組はフォーマット文字列のあとに並んだ最初の値に対応し、2 組目は 2 番目の値、というように続いていきます。
-一回の`println!`の呼び出しで複数の値を表示するなら次のようになります。
-
-```rust
-let x = 5;
-let y = 10;
-
-println!("x = {} and y = {}", x, y);
-```
-
-<!--
-This code would print `x = 5 and y = 10`.
--->
-
-このコードは`x = 5 and y = 10`と表示するでしょう。
-
-<!--
-### Testing the First Part
--->
+++演算子は文字列を結合します。
+Haskell では関数は常に演算子よりも優先されます。
+そのため、 `putStrLn` 関数が "You guessed" を引数に取り実行される前に、`()`を用いて、++演算子を先に処理させます。
 
 ### 最初の部分をテストする
 
-<!--
-Let’s test the first part of the guessing game. Run it using `cargo run`:
--->
-
 数当てゲームの最初の部分をテストしてみましょう。
-`cargo run`で走らせてください。
+`stack run`で走らせてください。
 
 ```console
-$ cargo run
-   Compiling guessing_game v0.1.0 (file:///projects/guessing_game)
-    Finished dev [unoptimized + debuginfo] target(s) in 6.44s
-     Running `target/debug/guessing_game`
+$ stack run
+(略)
 Guess the number!
 Please input your guess.
 6
 You guessed: 6
 ```
 
-<!--
-At this point, the first part of the game is done: we’re getting input from the
-keyboard and then printing it.
--->
-
 これで、キーボードからの入力を得て、それを表示するという、ゲームの最初の部分は完成になります。
 
-<!--
-## Generating a Secret Number
--->
-
 ## 秘密の数字を生成する
-
-<!--
-Next, we need to generate a secret number that the user will try to guess. The
-secret number should be different every time so the game is fun to play more
-than once. We’ll use a random number between 1 and 100 so the game isn’t too
-difficult. Rust doesn’t yet include random number functionality in its standard
-library. However, the Rust team does provide a [`rand` crate][randcrate] with
-said functionality.
--->
 
 次にユーザが数当てに挑戦する秘密の数字を生成する必要があります。
 この数字を毎回変えることで何度やっても楽しいゲームになります。
 ゲームが難しくなりすぎないように 1 から 100 までの乱数を使用しましょう。
-Rust の標準ライブラリには、まだ乱数の機能は含まれていません。
-ですが、Rust の開発チームがこの機能を持つ[`rand`クレート][randcrate]を提供してくれています。
 
-[randcrate]: https://crates.io/crates/rand
+System.Random をインポートすると 、randomRIO が利用可能になります。
 
-<!--
-### Using a Crate to Get More Functionality
--->
+stack install random
 
-### クレートを使用して機能を追加する
-
-<!--
-Remember that a crate is a collection of Rust source code files. The project
-we’ve been building is a *binary crate*, which is an executable. The `rand`
-crate is a *library crate*, which contains code intended to be used in other
-programs, and can’t be executed on its own.
--->
-
-クレートは Rust ソースコードを集めたものであることを思い出してください。
-私たちがここまで作ってきたプロジェクトは*バイナリクレート*であり、これは実行可能ファイルになります。
-`rand`クレートは*ライブラリクレート*です。
-他のプログラムで使用するためのコードが含まれており、単独で実行することはできません。
-
-<!--
-Cargo’s coordination of external crates is where Cargo really shines. Before we
-can write code that uses `rand`, we need to modify the *Cargo.toml* file to
-include the `rand` crate as a dependency. Open that file now and add the
-following line to the bottom beneath the `[dependencies]` section header that
-Cargo created for you. Be sure to specify `rand` exactly as we have here, with
-this version number, or the code examples in this tutorial may not work.
--->
-
-Cargo がその力を発揮するのは外部クレートと連携するときです。
-`rand`を使ったコードを書く前に、*Cargo.toml*ファイルを編集して`rand`クレートを依存関係に含める必要があります。
-そのファイルを開いて、Cargo が作ってくれた`[dependencies]`セクションヘッダの下に次の行を追加してください。
-バージョンナンバーを含め、ここに書かれている通り正確に`rand`を指定してください。
-そうしないと、このチュートリアルのコード例が動作しないかもしれません。
-
-<!--
-<span class="filename">Filename: Cargo.toml</span>
--->
-
-<span class="filename">ファイル名：Cargo.toml</span>
-
-```toml
-{{#include ../listings/ch02-guessing-game-tutorial/listing-02-02/Cargo.toml:9:}}
-```
-
-<!--
-In the *Cargo.toml* file, everything that follows a header is part of that
-section that continues until another section starts. In `[dependencies]` you
-tell Cargo which external crates your project depends on and which versions of
-those crates you require. In this case, we specify the `rand` crate with the
-semantic version specifier `0.8.3`. Cargo understands [Semantic
-Versioning][semver] (sometimes called *SemVer*), which is a
-standard for writing version numbers. The number `0.8.3` is actually shorthand
-for `^0.8.3`, which means any version that is at least `0.8.3` but below
-`0.9.0`. Cargo considers these versions to have public APIs compatible with
-version `0.8.3`, and this specification ensures you’ll get the latest patch
-release that will still compile with the code in this chapter. Any version
-`0.9.0` or greater is not guaranteed to have the same API as what the following
-examples use.
--->
+randomRIO は、最小値と 最大値を表すペアの値を受け取り、 それらの値によって表される範囲の乱数を生成します。
 
 *Cargo.toml*ファイルでは、ヘッダに続くものはすべて、他のセクションが始まるまで続くセクションの一部になります。
 （訳注：Cargo.toml ファイル内には複数のセクションがあり、各セクションは`[ ]`で囲まれたヘッダ行から始まります）
@@ -1587,3 +1148,7 @@ At this point, you’ve successfully built the guessing game. Congratulations!
 
 数当てゲームを無事に作り上げることができました。
 おめでとうございます！
+
+---
+
+> 注：`--`構文は行末まで続くコメントを開始し、Haskell はコメント内のすべて無視します。

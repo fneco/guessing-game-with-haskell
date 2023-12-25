@@ -25,3 +25,5 @@ compareNumbers secretNumber = do
         GT -> "Too big!"
         EQ -> "You win!"
     )
+
+  compareNumbers secretNumber

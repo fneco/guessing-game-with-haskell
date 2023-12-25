@@ -15,3 +15,12 @@ main = do
   guess <- getLine
 
   putStrLn ("You guessed: " ++ guess)
+
+  let guessNumber = read guess :: Int
+  let ordering = compare guessNumber secretNumber
+  putStrLn
+    ( case ordering of
+        LT -> "Too small!"
+        GT -> "Too big!"
+        EQ -> "You win!"
+    )

@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Control.Monad (when)
 import System.Random
 import Text.Read (readMaybe)
 
@@ -9,8 +10,6 @@ main = do
 
   secretNumber <- randomRIO (1, 100) :: IO Int
 
-  putStrLn ("The secret number is: " ++ show secretNumber)
-
   compareNumbers secretNumber
 
 compareNumbers :: Int -> IO ()
@@ -19,23 +18,17 @@ compareNumbers secretNumber = do
 
   guess <- getLine
 
-  let maybeGuessedNumber = readMaybe guess :: Maybe Int
-  case maybeGuessedNumber of
+  case readMaybe guess :: Maybe Int of
     Nothing -> compareNumbers secretNumber
     Just guessedNumber -> do
       putStrLn ("You guessed: " ++ guess)
 
       let ordering = compare guessedNumber secretNumber
 
-      isWin <- case ordering of
-        LT -> do
-          putStrLn "Too small!"
-          return False
-        GT -> do
-          putStrLn "Too big!"
-          return False
-        EQ -> return True
+      let (message, shouldContinue) = case ordering of
+            LT -> ("Too small!", False)
+            GT -> ("Too big!", False)
+            EQ -> ("You win!", True)
 
-      if isWin
-        then putStrLn "You win!"
-        else compareNumbers secretNumber
+      putStrLn message
+      when shouldContinue $ compareNumbers secretNumber

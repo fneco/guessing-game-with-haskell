@@ -1,6 +1,7 @@
 module Main (main) where
 
 import System.Random
+import Text.Read (readMaybe)
 
 main :: IO ()
 main = do
@@ -14,9 +15,13 @@ main = do
 
   guess <- getLine
 
+  let maybeGuessNumber = readMaybe guess :: Maybe Int
+  let guessNumber = case maybeGuessNumber of
+        Just parsedInput -> parsedInput
+        Nothing -> error "Please type a number!"
+
   putStrLn ("You guessed: " ++ guess)
 
-  let guessNumber = read guess :: Int
   let ordering = compare guessNumber secretNumber
   putStrLn
     ( case ordering of

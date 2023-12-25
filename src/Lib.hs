@@ -19,11 +19,16 @@ compareNumbers secretNumber = do
   putStrLn ("You guessed: " ++ guess)
 
   let ordering = compare guessedNumber secretNumber
-  putStrLn
-    ( case ordering of
-        LT -> "Too small!"
-        GT -> "Too big!"
-        EQ -> "You win!"
-    )
 
-  compareNumbers secretNumber
+  isWin <- case ordering of
+    LT -> do
+      putStrLn "Too small!"
+      return False
+    GT -> do
+      putStrLn "Too big!"
+      return False
+    EQ -> return True
+
+  if isWin
+    then putStrLn "You win!"
+    else compareNumbers secretNumber

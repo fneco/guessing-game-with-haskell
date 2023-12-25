@@ -12,23 +12,22 @@ compareNumbers secretNumber = do
   guess <- getLine
 
   let maybeGuessedNumber = readMaybe guess :: Maybe Int
-  let guessedNumber = case maybeGuessedNumber of
-        Just parsedInput -> parsedInput
-        Nothing -> error "Please type a number!"
+  case maybeGuessedNumber of
+    Nothing -> compareNumbers secretNumber
+    Just guessedNumber -> do
+      putStrLn ("You guessed: " ++ guess)
 
-  putStrLn ("You guessed: " ++ guess)
+      let ordering = compare guessedNumber secretNumber
 
-  let ordering = compare guessedNumber secretNumber
+      isWin <- case ordering of
+        LT -> do
+          putStrLn "Too small!"
+          return False
+        GT -> do
+          putStrLn "Too big!"
+          return False
+        EQ -> return True
 
-  isWin <- case ordering of
-    LT -> do
-      putStrLn "Too small!"
-      return False
-    GT -> do
-      putStrLn "Too big!"
-      return False
-    EQ -> return True
-
-  if isWin
-    then putStrLn "You win!"
-    else compareNumbers secretNumber
+      if isWin
+        then putStrLn "You win!"
+        else compareNumbers secretNumber

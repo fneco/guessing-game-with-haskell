@@ -1,24 +1,27 @@
 module Main (main) where
 
-import Control.Monad (when)
-import System.Random (randomRIO)
+import System.Random
 import Text.Read (readMaybe)
 
 main :: IO ()
 main = do
   putStrLn "Guess the number!"
-  secretNumber <- randomRIO (1, 100)
+
+  secretNumber <- randomRIO (1, 100) :: IO Int
+
+  putStrLn ("The secret number is: " ++ show secretNumber)
 
   compareNumbers secretNumber
 
 compareNumbers :: Int -> IO ()
 compareNumbers secretNumber = do
   putStrLn "Please input your guess."
+
   guess <- getLine
 
-  let callMyself _ = compareNumbers secretNumber
-  case readMaybe guess of
-    Nothing -> callMyself ()
+  let maybeGuessedNumber = readMaybe guess
+  case maybeGuessedNumber of
+    Nothing -> compareNumbers secretNumber
     Just guessedNumber -> do
       putStrLn ("You guessed: " ++ guess)
 
@@ -29,4 +32,4 @@ compareNumbers secretNumber = do
             EQ -> ("You win!", False)
 
       putStrLn message
-      when shouldContinue $ callMyself ()
+      if shouldContinue then compareNumbers secretNumber else return ()
